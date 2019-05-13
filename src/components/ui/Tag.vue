@@ -1,5 +1,17 @@
 <template>
-  <span class="tag">
+  <span
+    :class="`tag ${draggable ? 'tag--draggable' : ''}`"
+    :draggable="draggable"
+    v-on="
+      draggable
+        ? {
+            dragover: dragOver,
+            dragstart: dragStart,
+            dragend: dragEnd,
+          }
+        : {}
+    "
+  >
     <Button
       class="button--icon-only button--text-only"
       v-if="removable"
@@ -12,6 +24,7 @@
 </template>
 
 <script>
+/* https://codepen.io/crouchingtigerhiddenadam/pen/qKXgap */
 import Button from '@/components/ui/Button.vue';
 import Icon from '@/components/ui/Icon.vue';
 
@@ -23,15 +36,51 @@ export default {
       type: Boolean,
       default: false,
     },
+    draggable: {
+      type: Boolean,
+      default: false,
+    },
+    index: Number,
   },
   components: {
     Button,
     Icon,
   },
+  methods: {
+    dragOver(e) {
+      const draggingOver = e.target;
+      const newIndex = this.getElIndex(draggingOver);
+
+      this.$emit('reorder', newIndex);
+      e.stopPropagation();
+    },
+    dragStart(e) {
+      const index = this.getElIndex(e.target);
+
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', null);
+      this.$emit('dragStart', index);
+    },
+    dragEnd() {
+      this.$emit('dragEnd');
+    },
+    getElIndex(el) {
+      return Array.prototype.indexOf.call(el.parentNode.children, el);
+    },
+  },
+  data() {
+    return {
+      dragging: null,
+    };
+  },
 };
 </script>
 
 <style>
+.tag[draggable] {
+  user-select: none;
+  cursor: grabbing;
+}
 .tag {
   display: inline-block;
   vertical-align: top;

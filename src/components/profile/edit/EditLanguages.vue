@@ -18,13 +18,18 @@
         :collapsedShowLabel="true"
       />
     </header>
-    <div class="add-languages__list">
+    <div class="draggables">
       <Tag
         v-for="({ k, v }, index) in languages.values"
         :tag="v"
         :key="`language-${index}`"
+        :index="index"
         :removable="true"
+        :draggable="true"
+        @reorder="reorder"
         @removeTag="removeLanguage(index)"
+        @dragStart="dragStart"
+        @dragEnd="dragEnd"
       >
       </Tag>
     </div>
@@ -105,6 +110,20 @@ export default {
         this.languages.values.splice(index, 1);
       }
     },
+    reorder(newIndex) {
+      const array = this.languages.values;
+
+      this.arrayMove(array, this.dragging, newIndex);
+    },
+    dragStart(index) {
+      this.dragging = index;
+    },
+    dragEnd() {
+      this.dragging = null;
+    },
+    arrayMove(array, from, to) {
+      return array.splice(to, 0, array.splice(from, 1)[0]);
+    },
   },
   mounted() {
     this.$refs.header.focus();
@@ -123,6 +142,7 @@ export default {
         display,
       },
       addingLanguage: false,
+      dragging: null,
     };
   },
 };
